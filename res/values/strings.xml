@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">sqliteSpeedTest</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_speedTest">SQlite speed test</string>
+    <string name="switch_label">Indexed</string>
+    <string name="radio_select">Select</string>
+    <string name="radio_insert">Insert</string>
+    <string name="radio_update">Update</string>
+    <string name="radio_delete">Delete</string>
+    <string name="button_start">Start</string>
+
+    <string-array name="Rows">
+        <item>1000 row</item>
+        <item>3000 row</item>
+        <item>10,000 row</item>
+    </string-array>
+
+</resources>
