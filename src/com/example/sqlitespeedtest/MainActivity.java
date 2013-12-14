@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -31,6 +32,7 @@ public class MainActivity extends Activity {
 	RadioGroup radio_group;
 	Spinner spinner;
 	Switch index_switch;
+	EditText text_area;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class MainActivity extends Activity {
 
 		radio_group = (RadioGroup) findViewById(R.id.radioGroup1);
 		index_switch = (Switch) findViewById(R.id.switch1);
+		text_area = (EditText) findViewById(R.id.editText1);
 
 	}
 
@@ -69,30 +72,58 @@ public class MainActivity extends Activity {
 //			Toast.makeText(v.getContext(), "selected test is " + indexed,
 //					Toast.LENGTH_SHORT).show();
 			Context context = v.getContext();
+			long time=0;
 			if (test_id.equalsIgnoreCase("insert")) {
 				if(indexed){
-					dbHandler.insert_indexed(context,content);
+//					for(int i=0;i<10;i++){
+//						dbHandler.delete_indexed();
+//						time += dbHandler.insert_indexed(context,content);
+//					}
+					dbHandler.delete_indexed();
+					time = dbHandler.insert_indexed(context, content);
+					text_area.append("Indexed insert average: " +(time/10)+" milliseconds \n");
 				}else{
-					dbHandler.insert_not_indexed(context, content);
+//					for(int i=0;i<10;i++){
+//						dbHandler.delete_not_indexed();
+//						time += dbHandler.insert_not_indexed(context,content);
+//					}
+//					text_area.append("Indexed insert average: " +(time/10)+" miliseconds");
+					dbHandler.delete_not_indexed();
+					time = dbHandler.insert_not_indexed(context, content);
+					text_area.append("Insert " +time+" milliseconds \n");
 				}
 				
 			} else if (test_id.equalsIgnoreCase("select")) {
 				if(indexed){
-					dbHandler.select_indexed();
+					for(int i=0;i<10;i++){
+						time += dbHandler.select_indexed();
+					}
+					text_area.append("Indexed select average: " +(time/10)+" milliseconds \n");
 				}else{
-					dbHandler.select_not_indexed();
+					for(int i=0;i<10;i++){
+						time += dbHandler.select_not_indexed();
+					}
+					text_area.append("Select average: " +(time/10)+" milliseconds \n");
 				}
 			} else if (test_id.equalsIgnoreCase("update")) {
 				if(indexed){
-					dbHandler.update_indexed();
+					for(int i=0;i<10;i++){
+						time += dbHandler.update_indexed();
+					}
+					text_area.append("Indexed update average: " +(time/10)+" milliseconds \n");
 				}else{
-					dbHandler.update_not_indexed();
+					for(int i=0;i<10;i++){
+						time += dbHandler.update_not_indexed();
+					}
+					text_area.append("Update average: " +(time/10)+" milliseconds \n");
 				}
 			} else if (test_id.equalsIgnoreCase("delete")) {
 				if(indexed){
-					dbHandler.delete_indexed();
+					time = dbHandler.delete_indexed();
+					text_area.append("Indexed delete: " +(time)+" milliseconds \n");
 				}else{
-					dbHandler.delete_not_indexed();
+					time = dbHandler.delete_not_indexed();
+					text_area.append("Delete: " +(time)+" milliseconds \n");
 				}
 			}
 

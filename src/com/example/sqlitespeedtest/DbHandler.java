@@ -6,13 +6,9 @@ import java.util.List;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
-import android.webkit.WebView.FindListener;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class DbHandler extends SQLiteOpenHelper {
@@ -43,8 +39,6 @@ public class DbHandler extends SQLiteOpenHelper {
 			+ TABLE_NOT_INDEXED + " ( " + KEY_NAME + " text," + KEY_TEL
 			+ " text);";
 
-	
-	
 	public DbHandler(Context context, String name, CursorFactory factory,
 			int version) {
 		super(context, name, factory, version);
@@ -69,98 +63,124 @@ public class DbHandler extends SQLiteOpenHelper {
 		onCreate(db);
 	}
 
-    void insert_indexed(Context context,List<String[]> content) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        for (Iterator iterator = content.iterator(); iterator.hasNext();) {
+	long insert_indexed(Context context, List<String[]> content) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		long start_test = System.currentTimeMillis();
+		db.beginTransaction();
+		for (Iterator<String[]> iterator = content.iterator(); iterator.hasNext();) {
 			String[] contact = (String[]) iterator.next();
-            ContentValues values = new ContentValues();
-            values.put(KEY_TEL, contact[0]);
-            values.put(KEY_NAME, contact[1]); 
-            db.insert(TABLE_INDEXED, null, values);
+			ContentValues values = new ContentValues();
+			values.put(KEY_TEL, contact[0]);
+			values.put(KEY_NAME, contact[1]);
+			db.insert(TABLE_INDEXED, null, values);
 		}
-        db.close();
-        Toast.makeText(context, content.size()+" item inserted", Toast.LENGTH_LONG).show();
-    }
-    
-    void insert_not_indexed(Context context, List<String[]> content) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        for (Iterator iterator = content.iterator(); iterator.hasNext();) {
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		db.close();
+		long end_test = System.currentTimeMillis();
+		Toast.makeText(context, content.size() + " item inserted",
+				Toast.LENGTH_LONG).show();
+		return (end_test - start_test);
+	}
+
+	long insert_not_indexed(Context context, List<String[]> content) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		long start_test = System.currentTimeMillis();
+		db.beginTransaction();
+		for (Iterator<String[]> iterator = content.iterator(); iterator.hasNext();) {
 			String[] contact = (String[]) iterator.next();
-            ContentValues values = new ContentValues();
-            values.put(KEY_TEL, contact[0]);
-            values.put(KEY_NAME, contact[1]); 
-            db.insert(TABLE_NOT_INDEXED, null, values);
+			ContentValues values = new ContentValues();
+			values.put(KEY_TEL, contact[0]);
+			values.put(KEY_NAME, contact[1]);
+			db.insert(TABLE_NOT_INDEXED, null, values);
 		}
-        db.close();
-        Toast.makeText(context, content.size()+" item inserted", Toast.LENGTH_LONG).show();
-    }
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		db.close();
+		long end_test = System.currentTimeMillis();
+		Toast.makeText(context, content.size() + " item inserted",
+				Toast.LENGTH_LONG).show();
+		return (end_test - start_test);
+	}
 
-    public void select_indexed() {
-        String selectQuery = "SELECT  * FROM " + TABLE_INDEXED+
-        		" WHERE "+KEY_NAME+" LIKE '%';";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery(selectQuery, null);
-        // looping through all rows and adding to list
-        if (c.moveToFirst()) {
-            do {
-                // adding to todo list
-            } while (c.moveToNext());
-        }
-        db.close();
-    }
-    
-    public void select_not_indexed() {
-        String selectQuery = "SELECT  * FROM " + TABLE_NOT_INDEXED+" ;";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery(selectQuery, null);
-        // looping through all rows and adding to list
-        if (c.moveToFirst()) {
-            do {
-                // adding to todo list
-            } while (c.moveToNext());
-        }
-        db.close();
-    }
-    
-    public void update_indexed() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String updateQuery = "UPDATE " + TABLE_INDEXED+
-        		" SET "+ KEY_TEL+" = '-updated' WHERE "+KEY_NAME+" LIKE '%' ;" ;
+	long select_indexed() {
+		String selectQuery = "SELECT  * FROM " + TABLE_INDEXED + " WHERE "
+				+ KEY_NAME + " LIKE '%';";
+		SQLiteDatabase db = this.getReadableDatabase();
+		long start_test = System.currentTimeMillis();
+		Cursor c = db.rawQuery(selectQuery, null);
+		if (c.moveToFirst()) {
+			do {
+				// adding to todo list
+			} while (c.moveToNext());
+		}
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
 
-        Long start_test = System.nanoTime();
-        db.execSQL(updateQuery);
-        Long end_test = System.nanoTime();
-        Log.i("UPDATE TEST","Update indexed done in: "+(end_test - start_test));
-        db.close();
-    }
-    
-    public void update_not_indexed() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String updateQuery = "UPDATE " + TABLE_NOT_INDEXED+
-        		" SET "+ KEY_TEL+" = 'updated' ;";
-        
-        Long start_test = System.currentTimeMillis();
-        db.execSQL(updateQuery);
-        Long end_test = System.currentTimeMillis();
-        Log.i("UPDATE TEST","Update done in: "+(end_test - start_test));
-        db.close();
-    }
+	long select_not_indexed() {
+		String selectQuery = "SELECT  * FROM " + TABLE_NOT_INDEXED + " ;";
+		SQLiteDatabase db = this.getReadableDatabase();
+		long start_test = System.currentTimeMillis();
+		Cursor c = db.rawQuery(selectQuery, null);
+		// looping through all rows and adding to list
+		if (c.moveToFirst()) {
+			do {
+//				Log.i("UPDATE TEST","Select Name --> "+c.getString(1));
+			} while (c.moveToNext());
+		}
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
 
-    public void delete_indexed() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String deleteQuery = "DELETE FROM " + TABLE_INDEXED+
-        		" WHERE "+ KEY_TEL+" Like '%' ;";
-        // updating row
-        db.execSQL(deleteQuery);
-        db.close();
-    }
-    
-    public void delete_not_indexed() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String deleteQuery = "DELETE FROM " + TABLE_NOT_INDEXED+" ;";
-        // updating row
-        db.execSQL(deleteQuery);
-        db.close();
-    }
+	long update_indexed() {
+		SQLiteDatabase db = this.getWritableDatabase();
+		String updateQuery = "UPDATE " + TABLE_INDEXED + " SET " + KEY_TEL
+				+ " = '-updated' WHERE " + KEY_NAME + " LIKE '%' ;";
+
+		long start_test = System.currentTimeMillis();
+		db.execSQL(updateQuery);
+		// Log.i("UPDATE TEST","Update indexed done in: "+(end_test -
+		// start_test));
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
+
+	long update_not_indexed() {
+		SQLiteDatabase db = this.getWritableDatabase();
+		String updateQuery = "UPDATE " + TABLE_NOT_INDEXED + " SET " + KEY_TEL
+				+ " = 'ni-updated' ;";
+
+		long start_test = System.currentTimeMillis();
+		db.execSQL(updateQuery);
+		// Log.i("UPDATE TEST","Update done in: "+(end_test - start_test));
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
+
+	long delete_indexed() {
+		SQLiteDatabase db = this.getWritableDatabase();
+		String deleteQuery = "DELETE FROM " + TABLE_INDEXED + " WHERE "
+				+ KEY_TEL + " Like '%' ;";
+		long start_test = System.currentTimeMillis();
+		db.execSQL(deleteQuery);
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
+
+	long delete_not_indexed() {
+		SQLiteDatabase db = this.getWritableDatabase();
+		String deleteQuery = "DELETE FROM " + TABLE_NOT_INDEXED + " ;";
+		long start_test = System.currentTimeMillis();
+		db.execSQL(deleteQuery);
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
 
 }
