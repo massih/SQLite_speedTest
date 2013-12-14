@@ -2,7 +2,6 @@ package com.example.sqlitespeedtest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +23,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	DbHandler dbHandler;
@@ -175,7 +173,6 @@ public class MainActivity extends Activity {
 	String[] readRecord(XmlPullParser parser) throws XmlPullParserException,
 			IOException {
 		parser.require(XmlPullParser.START_TAG, null, "record");
-		int count = 0;
 		String tel = "";
 		String name = "";
 		while (parser.next() != XmlPullParser.END_TAG) {
