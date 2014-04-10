@@ -67,8 +67,6 @@ public class MainActivity extends Activity {
 			String test_id = (String) radio_button.getText();
 			List<String[]> content = readXML((int) spinner.getSelectedItemId());
 			boolean indexed = index_switch.isChecked();
-//			Toast.makeText(v.getContext(), "selected test is " + indexed,
-//					Toast.LENGTH_SHORT).show();
 			Context context = v.getContext();
 			long time=0;
 			if (test_id.equalsIgnoreCase("insert")) {
@@ -77,50 +75,54 @@ public class MainActivity extends Activity {
 //						dbHandler.delete_indexed();
 //						time += dbHandler.insert_indexed(context,content);
 //					}
-					dbHandler.delete_indexed();
+					dbHandler.delete_all("indexed");
 					time = dbHandler.insert_indexed(context, content);
-					text_area.append("Indexed insert average: " +(time/10)+" milliseconds \n");
+					text_area.append("Indexed insert : " +time+" milliseconds \n");
 				}else{
 //					for(int i=0;i<10;i++){
 //						dbHandler.delete_not_indexed();
 //						time += dbHandler.insert_not_indexed(context,content);
 //					}
 //					text_area.append("Indexed insert average: " +(time/10)+" miliseconds");
-					dbHandler.delete_not_indexed();
+					dbHandler.delete_all("not_indexed");
 					time = dbHandler.insert_not_indexed(context, content);
 					text_area.append("Insert " +time+" milliseconds \n");
 				}
 				
 			} else if (test_id.equalsIgnoreCase("select")) {
 				if(indexed){
-					for(int i=0;i<10;i++){
-						time += dbHandler.select_indexed();
-					}
-					text_area.append("Indexed select average: " +(time/10)+" milliseconds \n");
+//					for(int i=0;i<10;i++){
+//						time += dbHandler.select_indexed(content.size());
+//					}
+					time =  dbHandler.select_indexed(content.size());
+					text_area.append("Indexed select average: " +(time)+" milliseconds \n");
 				}else{
-					for(int i=0;i<10;i++){
-						time += dbHandler.select_not_indexed();
-					}
-					text_area.append("Select average: " +(time/10)+" milliseconds \n");
+//					for(int i=0;i<10;i++){
+//						time += dbHandler.select_not_indexed(content.size());
+//					}
+					time = dbHandler.select_not_indexed(content.size());
+					text_area.append("Select average: " +(time)+" milliseconds \n");
 				}
 			} else if (test_id.equalsIgnoreCase("update")) {
 				if(indexed){
 					for(int i=0;i<10;i++){
-						time += dbHandler.update_indexed();
+						time += dbHandler.update_indexed(content.size());
 					}
 					text_area.append("Indexed update average: " +(time/10)+" milliseconds \n");
 				}else{
 					for(int i=0;i<10;i++){
-						time += dbHandler.update_not_indexed();
+						time += dbHandler.update_not_indexed(content.size());
 					}
 					text_area.append("Update average: " +(time/10)+" milliseconds \n");
 				}
 			} else if (test_id.equalsIgnoreCase("delete")) {
 				if(indexed){
-					time = dbHandler.delete_indexed();
+//					dbHandler.insert_indexed(context, content);
+					time = dbHandler.delete_indexed(content.size());
 					text_area.append("Indexed delete: " +(time)+" milliseconds \n");
 				}else{
-					time = dbHandler.delete_not_indexed();
+//					dbHandler.insert_not_indexed(context, content);
+					time = dbHandler.delete_not_indexed(content.size());
 					text_area.append("Delete: " +(time)+" milliseconds \n");
 				}
 			}
@@ -175,12 +177,20 @@ public class MainActivity extends Activity {
 		parser.require(XmlPullParser.START_TAG, null, "record");
 		String tel = "";
 		String name = "";
+		String pid = "";
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 			}
 			String txt = parser.getName();
-			if (txt.equals("tel")) {
+			if (txt.equals("pid")) {
+				parser.require(XmlPullParser.START_TAG, null, "pid");
+				if (parser.next() == XmlPullParser.TEXT) {
+					pid = parser.getText();
+					parser.nextTag();
+				}
+				parser.require(XmlPullParser.END_TAG, null, "pid");
+			}else if (txt.equals("tel")) {
 				parser.require(XmlPullParser.START_TAG, null, "tel");
 				if (parser.next() == XmlPullParser.TEXT) {
 					tel = parser.getText();
@@ -198,7 +208,7 @@ public class MainActivity extends Activity {
 				skip(parser);
 			}
 		}
-		String[] res = { tel, name };
+		String[] res = {pid, tel, name };
 		return res;
 	}
 

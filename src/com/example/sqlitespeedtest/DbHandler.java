@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import android.widget.Toast;
 
 public class DbHandler extends SQLiteOpenHelper {
@@ -30,14 +31,15 @@ public class DbHandler extends SQLiteOpenHelper {
 	private static final String KEY_TEL = "tel";
 
 	private static final String CREATE_TABLE_INDEXED = "CREATE TABLE "
-			+ TABLE_INDEXED + " ( " + KEY_NAME + " text," + KEY_TEL + " text);";
+			+ TABLE_INDEXED + " ( pid integer, " + KEY_NAME + " text,"
+			+ KEY_TEL + " text);";
 
 	private static final String CREATE_INDEX = "CREATE INDEX indName on "
 			+ TABLE_INDEXED + " ( " + KEY_NAME + " );";
 
 	private static final String CREATE_TABLE_NOT_INDEXED = "CREATE TABLE "
-			+ TABLE_NOT_INDEXED + " ( " + KEY_NAME + " text," + KEY_TEL
-			+ " text);";
+			+ TABLE_NOT_INDEXED + " ( pid integer, " + KEY_NAME + " text,"
+			+ KEY_TEL + " text);";
 
 	public DbHandler(Context context, String name, CursorFactory factory,
 			int version) {
@@ -52,6 +54,7 @@ public class DbHandler extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(CREATE_TABLE_INDEXED);
 		db.execSQL(CREATE_INDEX);
+		db.execSQL("create index pId on indexed(pid)");
 		db.execSQL(CREATE_TABLE_NOT_INDEXED);
 	}
 
@@ -67,11 +70,13 @@ public class DbHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		long start_test = System.currentTimeMillis();
 		db.beginTransaction();
-		for (Iterator<String[]> iterator = content.iterator(); iterator.hasNext();) {
+		for (Iterator<String[]> iterator = content.iterator(); iterator
+				.hasNext();) {
 			String[] contact = (String[]) iterator.next();
 			ContentValues values = new ContentValues();
-			values.put(KEY_TEL, contact[0]);
-			values.put(KEY_NAME, contact[1]);
+			values.put("pid", contact[0]);
+			values.put(KEY_TEL, contact[1]);
+			values.put(KEY_NAME, contact[2]);
 			db.insert(TABLE_INDEXED, null, values);
 		}
 		db.setTransactionSuccessful();
@@ -87,11 +92,13 @@ public class DbHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		long start_test = System.currentTimeMillis();
 		db.beginTransaction();
-		for (Iterator<String[]> iterator = content.iterator(); iterator.hasNext();) {
+		for (Iterator<String[]> iterator = content.iterator(); iterator
+				.hasNext();) {
 			String[] contact = (String[]) iterator.next();
 			ContentValues values = new ContentValues();
-			values.put(KEY_TEL, contact[0]);
-			values.put(KEY_NAME, contact[1]);
+			values.put("pid", contact[0]);
+			values.put(KEY_TEL, contact[1]);
+			values.put(KEY_NAME, contact[2]);
 			db.insert(TABLE_NOT_INDEXED, null, values);
 		}
 		db.setTransactionSuccessful();
@@ -103,84 +110,106 @@ public class DbHandler extends SQLiteOpenHelper {
 		return (end_test - start_test);
 	}
 
-	long select_indexed() {
-		String selectQuery = "SELECT  * FROM " + TABLE_INDEXED + " WHERE "
-				+ KEY_NAME + " LIKE '%';";
+	long select_indexed(int limit) {
 		SQLiteDatabase db = this.getReadableDatabase();
 		long start_test = System.currentTimeMillis();
-		Cursor c = db.rawQuery(selectQuery, null);
-		if (c.moveToFirst()) {
-			do {
-				// adding to todo list
-			} while (c.moveToNext());
+		for (int i = 0; i < limit; i = i + 100) {
+			String selectQuery = "SELECT  * FROM " + TABLE_INDEXED
+					+ " WHERE pid >= " + i + " and pid <" + (i + 100) + " AND "
+					+ KEY_NAME + " is not '' ;";
+			Cursor c = db.rawQuery(selectQuery, null);
+//			Log.i("UPDATE TEST", "COUNT COLUMN --> " + c.getCount());
+			if (c.moveToFirst()) {
+				do {
+					// Log.i("UPDATE TEST","Select Name --> "+c.getString(1));
+				} while (c.moveToNext());
+			}
 		}
 		db.close();
 		long end_test = System.currentTimeMillis();
 		return (end_test - start_test);
 	}
 
-	long select_not_indexed() {
-		String selectQuery = "SELECT  * FROM " + TABLE_NOT_INDEXED + " ;";
+	long select_not_indexed(int limit) {
 		SQLiteDatabase db = this.getReadableDatabase();
 		long start_test = System.currentTimeMillis();
-		Cursor c = db.rawQuery(selectQuery, null);
-		// looping through all rows and adding to list
-		if (c.moveToFirst()) {
-			do {
-//				Log.i("UPDATE TEST","Select Name --> "+c.getString(1));
-			} while (c.moveToNext());
+		for (int i = 0; i < limit; i = i + 100) {
+			String selectQuery = "SELECT  * FROM " + TABLE_NOT_INDEXED
+					+ " WHERE pid >= " + i + " and pid <" + (i + 100) + " AND "
+					+ KEY_NAME + " is not '' ;";
+			Cursor c = db.rawQuery(selectQuery, null);
+//			Log.i("UPDATE TEST", "COUNT COLUMN --> " + c.getCount());
+			if (c.moveToFirst()) {
+				do {
+					// Log.i("UPDATE TEST","Select Name --> "+c.getString(1));
+				} while (c.moveToNext());
+			}
 		}
 		db.close();
 		long end_test = System.currentTimeMillis();
 		return (end_test - start_test);
 	}
 
-	long update_indexed() {
+	long update_indexed(int limit) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		String updateQuery = "UPDATE " + TABLE_INDEXED + " SET " + KEY_TEL
-				+ " = '-updated' WHERE " + KEY_NAME + " LIKE '%' ;";
-
 		long start_test = System.currentTimeMillis();
-		db.execSQL(updateQuery);
-		// Log.i("UPDATE TEST","Update indexed done in: "+(end_test -
-		// start_test));
+		for (int i = 0; i < limit; i = i + 100) {
+			String updateQuery = "UPDATE " + TABLE_INDEXED + " SET " + KEY_TEL
+					+ " = '-updated' WHERE pid >= " + i + " and pid <"
+					+ (i + 100) + " AND " + KEY_NAME + " is not '' ;";
+			db.execSQL(updateQuery);
+		}
 		db.close();
 		long end_test = System.currentTimeMillis();
 		return (end_test - start_test);
 	}
 
-	long update_not_indexed() {
+	long update_not_indexed(int limit) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		String updateQuery = "UPDATE " + TABLE_NOT_INDEXED + " SET " + KEY_TEL
-				+ " = 'ni-updated' ;";
-
 		long start_test = System.currentTimeMillis();
-		db.execSQL(updateQuery);
-		// Log.i("UPDATE TEST","Update done in: "+(end_test - start_test));
+		for (int i = 0; i < limit; i = i + 100) {
+			String updateQuery = "UPDATE " + TABLE_NOT_INDEXED + " SET " + KEY_TEL
+					+ " = '-updated' WHERE pid >= " + i + " and pid <"
+					+ (i + 100) + " AND " + KEY_NAME + " is not '' ;";
+			db.execSQL(updateQuery);
+		}
 		db.close();
 		long end_test = System.currentTimeMillis();
 		return (end_test - start_test);
 	}
 
-	long delete_indexed() {
+	long delete_indexed(int limit) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		String deleteQuery = "DELETE FROM " + TABLE_INDEXED + " WHERE "
-				+ KEY_TEL + " Like '%' ;";
 		long start_test = System.currentTimeMillis();
+		for (int i = 0; i < limit; i = i + 100) {
+			String deleteQuery = "DELETE FROM " + TABLE_INDEXED
+					+ " WHERE pid >= " + i + " and pid < " + (i + 100) + " AND "
+					+ KEY_NAME + " is not '' ;";
+			db.execSQL(deleteQuery);
+		}
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
+
+	long delete_not_indexed(int limit) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		long start_test = System.currentTimeMillis();
+		for (int i = 0; i < limit; i = i + 100) {
+			String deleteQuery = "DELETE FROM " + TABLE_NOT_INDEXED
+					+ " WHERE pid >= " + i + " and pid < " + (i + 100) + " AND "
+					+ KEY_NAME + " is not '' ;";
+			db.execSQL(deleteQuery);
+		}
+		db.close();
+		long end_test = System.currentTimeMillis();
+		return (end_test - start_test);
+	}
+
+	void delete_all(String identifier){
+		SQLiteDatabase db = this.getWritableDatabase();
+		String deleteQuery = "DELETE FROM " + identifier +" ;";
 		db.execSQL(deleteQuery);
 		db.close();
-		long end_test = System.currentTimeMillis();
-		return (end_test - start_test);
 	}
-
-	long delete_not_indexed() {
-		SQLiteDatabase db = this.getWritableDatabase();
-		String deleteQuery = "DELETE FROM " + TABLE_NOT_INDEXED + " ;";
-		long start_test = System.currentTimeMillis();
-		db.execSQL(deleteQuery);
-		db.close();
-		long end_test = System.currentTimeMillis();
-		return (end_test - start_test);
-	}
-
 }
